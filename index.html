@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Premium Lern-Tool: Statistik</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #3B82F6;
+            --secondary-color: #1F2937;
+            --background-color: #F3F4F6;
+            --surface-color: #FFFFFF;
+            --correct-color: #10B981;
+            --incorrect-color: #EF4444;
+            --confidence-color: #F59E0B;
+            --text-color: #374151;
+            --border-color: #D1D5DB;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --border-radius: 12px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 2rem;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 960px;
+            margin: auto;
+        }
+
+        header {
+            text-align: center;
+            padding-bottom: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            color: var(--secondary-color);
+            font-weight: 700;
+            font-size: 2.8em;
+        }
+
+        #timer-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--surface-color);
+            padding: 10px 20px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            font-size: 1.2em;
+            font-weight: 700;
+            color: var(--primary-color);
+            z-index: 1000;
+        }
+        
+        .question-block {
+            margin-bottom: 2rem;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            background-color: var(--surface-color);
+            box-shadow: var(--shadow);
+        }
+
+        .question-block p {
+            font-weight: 500;
+            font-size: 1.25em;
+            margin-top: 0;
+        }
+        
+        .confidence-slider {
+            margin: 1.5rem 0;
+        }
+        .confidence-slider label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+        }
+
+        .answer-label {
+            display: block;
+            margin-bottom: 0.75rem;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .answer-label:hover {
+            border-color: var(--primary-color);
+            background-color: #EFF6FF;
+        }
+        
+        .explanation {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: #E0E7FF;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        #submit-btn {
+            display: block;
+            width: 100%;
+            padding: 1.25rem;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #fff;
+            background: var(--primary-color);
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #submit-btn:hover {
+            background-color: #2563EB;
+        }
+
+        #results { display: none; }
+        
+        #results-dashboard {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .result-card {
+            background: var(--surface-color);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+        
+        .result-card h3 {
+            margin-top: 0;
+            color: var(--secondary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+        }
+        
+        #badges-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .badge {
+            background-color: var(--background-color);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .badge.earned {
+            background-color: var(--confidence-color);
+            color: white;
+        }
+
+        .correct { background-color: #D1FAE5 !important; border-color: var(--correct-color); }
+        .incorrect { background-color: #FEE2E2 !important; border-color: var(--incorrect-color); }
+
+        @media (max-width: 768px) {
+            #results-dashboard { grid-template-columns: 1fr; }
+            body { padding: 1rem; }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="timer-container">Verbleibende Zeit: <span id="time">45:00</span></div>
+
+    <header>
+        <h1>Premium Lern-Tool: Statistik</h1>
+    </header>
+
+    <form id="quiz-form">
+        <div class="question-block" data-category="Grundlagen">
+            <p>1. Welches Skalenniveau hat das Merkmal "IBAN" (International Bank Account Number)?</p>
+            <div class="confidence-slider">
+                <label for="c1">Wie sicher sind Sie sich?</label>
+                <input type="range" id="c1" name="c1" min="1" max="3" value="2">
+            </div>
+            <label class="answer-label"><input type="radio" name="q1" value="A"> A) Ordinalskala</label>
+            <label class="answer-label"><input type="radio" name="q1" value="B"> B) Nominalskala</label>
+            <label class="answer-label"><input type="radio" name="q1" value="C"> C) Verhältnisskala</label>
+            <label class="answer-label"><input type="radio" name="q1" value="D"> D) Intervallskala</label>
+            <div class="explanation" data-correct="B"><strong>Erklärung:</strong> Eine IBAN ist eine eindeutige Kennzeichnung ohne natürliche Reihenfolge oder interpretierbare Abstände. Daher ist sie nominalskaliert.</div>
+        </div>
+        
+        <div class="question-block" data-category="Deskriptive Statistik">
+            <p>2. Ein Datensatz zum Einkommen ist stark rechtsschief. Welches Lagemaß beschreibt die Mitte am robustesten?</p>
+             <div class="confidence-slider">
+                <label for="c2">Wie sicher sind Sie sich?</label>
+                <input type="range" id="c2" name="c2" min="1" max="3" value="2">
+            </div>
+            <label class="answer-label"><input type="radio" name="q2" value="A"> A) Mittelwert</label>
+            <label class="answer-label"><input type="radio" name="q2" value="B"> B) Modus</label>
+            <label class="answer-label"><input type="radio" name="q2" value="C"> C) Median</label>
+            <label class="answer-label"><input type="radio" name="q2" value="D"> D) Geometrisches Mittel</label>
+            <div class="explanation" data-correct="C"><strong>Erklärung:</strong> Der Median ist robust gegenüber Ausreißern (sehr hohe Einkommen), die den Mittelwert stark nach oben verzerren würden.</div>
+        </div>
+        
+        </form>
+    
+    <button id="submit-btn">Prüfung auswerten & Analyse starten</button>
+
+    <div id="results">
+        <header>
+            <h1>Persönliche Auswertung</h1>
+        </header>
+        <div id="results-dashboard">
+            <div class="result-card">
+                <h3>Wissenslandkarte</h3>
+                <canvas id="skill-chart"></canvas>
+            </div>
+            <div class="result-card">
+                <h3>Leistungsübersicht</h3>
+                <p><strong>Gesamtergebnis:</strong> <span id="total-score"></span></p>
+                <p><strong>Gefährliches Halbwissen:</strong> <span id="misjudged"></span> Frage(n) falsch, obwohl Sie sich sicher waren.</p>
+                <h3>Deine Badges</h3>
+                <div id="badges-container">
+                     <div class="badge" id="badge-grundlagen">🎓 Grundlagen-Meister</div>
+                     <div class="badge" id="badge-deskriptiv">📊 Deskriptiv-Profi</div>
+                     <div class="badge" id="badge-fehlerlos">🎯 Fehlerlos-Serie</div>
+                </div>
+            </div>
+             <div class="result-card" style="grid-column: 1 / -1;">
+                <h3>Ihr Persönlicher Lernplan</h3>
+                <div id="learning-plan"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    const quizData = [
+        { q: 1, a: 'B', cat: 'Grundlagen' },
+        { q: 2, a: 'C', cat: 'Deskriptive Statistik' },
+        // Fügen Sie hier die restlichen 48 Fragenobjekte ein
+        // z.B. { q: 3, a: 'A', cat: 'Induktive Statistik' }, ...
+    ];
+    
+    let timerInterval;
+
+    function startTimer(duration, display) {
+        let timer = duration, minutes, seconds;
+        timerInterval = setInterval(function () {
+            minutes = parseInt(timer / 60, 10);
+            seconds = parseInt(timer % 60, 10);
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+            seconds = seconds < 10 ? "0" + seconds : seconds;
+            display.textContent = minutes + ":" + seconds;
+            if (--timer < 0) {
+                clearInterval(timerInterval);
+                alert("Die Zeit ist um! Die Prüfung wird jetzt ausgewertet.");
+                checkAnswers();
+            }
+        }, 1000);
+    }
+
+    window.onload = function () {
+        const fortyFiveMinutes = 60 * 45,
+            display = document.querySelector('#time');
+        startTimer(fortyFiveMinutes, display);
+    };
+
+    document.getElementById('submit-btn').addEventListener('click', e => {
+        e.preventDefault();
+        clearInterval(timerInterval);
+        checkAnswers();
+    });
+
+    function checkAnswers() {
+        let score = 0;
+        let misjudgedQuestions = 0;
+        
+        const categoryScores = {
+            "Grundlagen": { correct: 0, total: 0 },
+            "Deskriptive Statistik": { correct: 0, total: 0 },
+            "Induktive Statistik": { correct: 0, total: 0 },
+            "Korrelation und Regression": { correct: 0, total: 0 },
+            "Wahrscheinlichkeitsrechnung": { correct: 0, total: 0 }
+        };
+        let consecutiveCorrect = 0;
+        let maxConsecutive = 0;
+
+        quizData.forEach(item => {
+            const qBlock = document.querySelector(`input[name="q${item.q}"]`).closest('.question-block');
+            const selected = qBlock.querySelector(`input[name="q${item.q}"]:checked`);
+            const confidence = qBlock.querySelector(`input[name="c${item.q}"]`).value;
+            const explanation = qBlock.querySelector('.explanation');
+            const labels = qBlock.querySelectorAll('.answer-label');
+
+            categoryScores[item.cat].total++;
+
+            if (selected) {
+                const isCorrect = selected.value === item.a;
+                if (isCorrect) {
+                    score++;
+                    categoryScores[item.cat].correct++;
+                    selected.closest('.answer-label').classList.add('correct');
+                    consecutiveCorrect++;
+                } else {
+                    selected.closest('.answer-label').classList.add('incorrect');
+                    if (confidence === '3') misjudgedQuestions++;
+                    consecutiveCorrect = 0;
+                }
+                maxConsecutive = Math.max(maxConsecutive, consecutiveCorrect);
+            }
+            
+            labels.forEach(l => {
+                if (l.querySelector('input').value === item.a) {
+                    l.classList.add('correct');
+                }
+            });
+
+            explanation.style.display = 'block';
+        });
+
+        displayResults(score, misjudgedQuestions, maxConsecutive, categoryScores);
+    }
+    
+    function displayResults(score, misjudged, consecutive, categoryScores) {
+        document.getElementById('quiz-form').style.display = 'none';
+        document.getElementById('submit-btn').style.display = 'none';
+        document.getElementById('timer-container').style.display = 'none';
+        document.getElementById('results').style.display = 'block';
+
+        document.getElementById('total-score').textContent = `${score} von ${quizData.length} (${((score/quizData.length)*100).toFixed(0)}%)`;
+        document.getElementById('misjudged').textContent = misjudged;
+
+        // Badge Logic
+        if (categoryScores['Grundlagen'].correct === categoryScores['Grundlagen'].total && categoryScores['Grundlagen'].total > 0) {
+            document.getElementById('badge-grundlagen').classList.add('earned');
+        }
+        // Fügen Sie hier Logik für andere Badges hinzu...
+        if (consecutive >= 5) { // z.B. 5 in Folge richtig
+             document.getElementById('badge-fehlerlos').classList.add('earned');
+        }
+
+
+        renderChart(categoryScores);
+        generateLearningPlan(categoryScores);
+    }
+
+    function renderChart(categoryScores) {
+        const ctx = document.getElementById('skill-chart').getContext('2d');
+        const labels = Object.keys(categoryScores);
+        const data = labels.map(label => {
+            const cat = categoryScores[label];
+            return cat.total > 0 ? (cat.correct / cat.total) * 100 : 0;
+        });
+
+        new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Beherrschung in %',
+                    data: data,
+                    fill: true,
+                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                    borderColor: 'rgb(59, 130, 246)',
+                    pointBackgroundColor: 'rgb(59, 130, 246)',
+                }]
+            },
+            options: {
+                elements: {
+                    line: { tension: 0.1 }
+                },
+                scales: {
+                    r: {
+                        angleLines: { display: false },
+                        suggestedMin: 0,
+                        suggestedMax: 100
+                    }
+                }
+            }
+        });
+    }
+    
+    function generateLearningPlan(categoryScores) {
+        const planContainer = document.getElementById('learning-plan');
+        let recommendations = [];
+
+        for (const category in categoryScores) {
+            const { correct, total } = categoryScores[category];
+            if (total > 0) {
+                const percentage = (correct / total) * 100;
+                recommendations.push({ category, percentage });
+            }
+        }
+        
+        recommendations.sort((a, b) => a.percentage - b.percentage);
+
+        let html = '<ul>';
+        recommendations.forEach(rec => {
+            let priority;
+            if (rec.percentage < 50) priority = "🔴 Hohe Priorität:";
+            else if (rec.percentage < 80) priority = "🟡 Mittlere Priorität:";
+            else priority = "🟢 Gut gemacht:";
+            
+            html += `<li><strong>${priority}</strong> ${rec.category} (Ergebnis: ${rec.percentage.toFixed(0)}%). Fokussiere dich hier auf die Grundlagen.</li>`;
+        });
+        html += '</ul>';
+        planContainer.innerHTML = html;
+    }
+
+});
+</script>
+
+</body>
+</html>
