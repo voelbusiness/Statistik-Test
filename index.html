@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Premium Lern-Tool: Statistik</title>
+    <title>IU Statistik Masterclass (BSTA01-02)</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            --primary-color: #3B82F6;
+            --primary-color: #F59E0B; /* IU Orange */
             --secondary-color: #1F2937;
-            --background-color: #F3F4F6;
+            --background-color: #F9FAFB;
             --surface-color: #FFFFFF;
             --correct-color: #10B981;
             --incorrect-color: #EF4444;
-            --confidence-color: #F59E0B;
+            --confidence-color: #3B82F6;
             --text-color: #374151;
             --border-color: #D1D5DB;
             --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -30,6 +30,7 @@
             padding: 2rem;
             background-color: var(--background-color);
             color: var(--text-color);
+            transition: background-color 0.3s;
         }
 
         .container {
@@ -47,6 +48,13 @@
             color: var(--secondary-color);
             font-weight: 700;
             font-size: 2.8em;
+        }
+        
+        h3 {
+            color: var(--secondary-color);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-top: 0;
         }
 
         #timer-container {
@@ -69,6 +77,10 @@
             border-radius: var(--border-radius);
             background-color: var(--surface-color);
             box-shadow: var(--shadow);
+            transition: box-shadow 0.3s ease;
+        }
+        .question-block:hover {
+             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
 
         .question-block p {
@@ -101,15 +113,16 @@
         }
         .answer-label:hover {
             border-color: var(--primary-color);
-            background-color: #EFF6FF;
+            background-color: #FEF3C7;
         }
         
         .explanation {
             display: none;
             margin-top: 1rem;
             padding: 1rem;
-            background-color: #E0E7FF;
+            background-color: #E5E7EB;
             border-left: 5px solid var(--primary-color);
+            border-radius: 0 8px 8px 0;
         }
 
         #submit-btn {
@@ -123,10 +136,14 @@
             border: none;
             border-radius: var(--border-radius);
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, transform 0.1s;
         }
         #submit-btn:hover {
-            background-color: #2563EB;
+            background-color: #FBBF24;
+            filter: brightness(1.1);
+        }
+        #submit-btn:active {
+            transform: scale(0.99);
         }
 
         #results { display: none; }
@@ -143,19 +160,24 @@
             padding: 2rem;
             border-radius: var(--border-radius);
             box-shadow: var(--shadow);
+            animation: fadeIn 0.5s ease-in-out forwards;
+            opacity: 0;
         }
-        
-        .result-card h3 {
-            margin-top: 0;
-            color: var(--secondary-color);
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 0.5rem;
+
+        .result-card:nth-child(1) { animation-delay: 0.1s; }
+        .result-card:nth-child(2) { animation-delay: 0.2s; }
+        .result-card:nth-child(3) { animation-delay: 0.3s; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         
         #badges-container {
             display: flex;
             flex-wrap: wrap;
             gap: 1rem;
+            margin-top: 1rem;
         }
         
         .badge {
@@ -166,85 +188,72 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
+            color: #6B7280;
+            transition: all 0.3s ease;
         }
         
         .badge.earned {
-            background-color: var(--confidence-color);
+            background-color: var(--primary-color);
             color: white;
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.5);
         }
+        
+        #learning-plan ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        #learning-plan li {
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+        #learning-plan .priority-high { background-color: #FEE2E2; }
+        #learning-plan .priority-medium { background-color: #FEF3C7; }
+        #learning-plan .priority-low { background-color: #D1FAE5; }
 
-        .correct { background-color: #D1FAE5 !important; border-color: var(--correct-color); }
-        .incorrect { background-color: #FEE2E2 !important; border-color: var(--incorrect-color); }
+
+        .correct { background-color: #D1FAE5 !important; border-color: var(--correct-color) !important; font-weight: bold; }
+        .incorrect { background-color: #FEE2E2 !important; border-color: var(--incorrect-color) !important; }
 
         @media (max-width: 768px) {
             #results-dashboard { grid-template-columns: 1fr; }
             body { padding: 1rem; }
+            h1 { font-size: 2em; }
         }
-
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="timer-container">Verbleibende Zeit: <span id="time">45:00</span></div>
+    <div id="quiz-container">
+        <div id="timer-container">Verbleibende Zeit: <span id="time">75:00</span></div>
+        <header>
+            <h1>IU Statistik Masterclass (BSTA01-02)</h1>
+        </header>
+        <form id="quiz-form"></form>
+        <button id="submit-btn">Prüfung auswerten & Analyse starten</button>
+    </div>
 
-    <header>
-        <h1>Premium Lern-Tool: Statistik</h1>
-    </header>
-
-    <form id="quiz-form">
-        <div class="question-block" data-category="Grundlagen">
-            <p>1. Welches Skalenniveau hat das Merkmal "IBAN" (International Bank Account Number)?</p>
-            <div class="confidence-slider">
-                <label for="c1">Wie sicher sind Sie sich?</label>
-                <input type="range" id="c1" name="c1" min="1" max="3" value="2">
-            </div>
-            <label class="answer-label"><input type="radio" name="q1" value="A"> A) Ordinalskala</label>
-            <label class="answer-label"><input type="radio" name="q1" value="B"> B) Nominalskala</label>
-            <label class="answer-label"><input type="radio" name="q1" value="C"> C) Verhältnisskala</label>
-            <label class="answer-label"><input type="radio" name="q1" value="D"> D) Intervallskala</label>
-            <div class="explanation" data-correct="B"><strong>Erklärung:</strong> Eine IBAN ist eine eindeutige Kennzeichnung ohne natürliche Reihenfolge oder interpretierbare Abstände. Daher ist sie nominalskaliert.</div>
-        </div>
-        
-        <div class="question-block" data-category="Deskriptive Statistik">
-            <p>2. Ein Datensatz zum Einkommen ist stark rechtsschief. Welches Lagemaß beschreibt die Mitte am robustesten?</p>
-             <div class="confidence-slider">
-                <label for="c2">Wie sicher sind Sie sich?</label>
-                <input type="range" id="c2" name="c2" min="1" max="3" value="2">
-            </div>
-            <label class="answer-label"><input type="radio" name="q2" value="A"> A) Mittelwert</label>
-            <label class="answer-label"><input type="radio" name="q2" value="B"> B) Modus</label>
-            <label class="answer-label"><input type="radio" name="q2" value="C"> C) Median</label>
-            <label class="answer-label"><input type="radio" name="q2" value="D"> D) Geometrisches Mittel</label>
-            <div class="explanation" data-correct="C"><strong>Erklärung:</strong> Der Median ist robust gegenüber Ausreißern (sehr hohe Einkommen), die den Mittelwert stark nach oben verzerren würden.</div>
-        </div>
-        
-        </form>
-    
-    <button id="submit-btn">Prüfung auswerten & Analyse starten</button>
-
-    <div id="results">
+    <div id="results" style="display: none;">
         <header>
             <h1>Persönliche Auswertung</h1>
         </header>
         <div id="results-dashboard">
             <div class="result-card">
-                <h3>Wissenslandkarte</h3>
+                <h3>Wissenslandkarte (Lektionen)</h3>
                 <canvas id="skill-chart"></canvas>
             </div>
             <div class="result-card">
                 <h3>Leistungsübersicht</h3>
                 <p><strong>Gesamtergebnis:</strong> <span id="total-score"></span></p>
-                <p><strong>Gefährliches Halbwissen:</strong> <span id="misjudged"></span> Frage(n) falsch, obwohl Sie sich sicher waren.</p>
+                <p><strong>Zeit gebraucht:</strong> <span id="time-taken"></span></p>
+                <p><strong>Gefährliches Halbwissen:</strong> <span id="misjudged"></span> Frage(n) falsch, obwohl Sie sich sehr sicher waren.</p>
                 <h3>Deine Badges</h3>
-                <div id="badges-container">
-                     <div class="badge" id="badge-grundlagen">🎓 Grundlagen-Meister</div>
-                     <div class="badge" id="badge-deskriptiv">📊 Deskriptiv-Profi</div>
-                     <div class="badge" id="badge-fehlerlos">🎯 Fehlerlos-Serie</div>
-                </div>
+                <div id="badges-container"></div>
             </div>
              <div class="result-card" style="grid-column: 1 / -1;">
-                <h3>Ihr Persönlicher Lernplan</h3>
+                <h3>Dein Persönlicher Lernplan</h3>
                 <div id="learning-plan"></div>
             </div>
         </div>
@@ -254,121 +263,177 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 
+    const quizDurationMinutes = 75;
+    
+    // =================================================================================
+    // DATA LAYER - EXAKT ABGESTIMMT AUF IU LERNSKRIPT BSTA01-02
+    // =================================================================================
     const quizData = [
-        { q: 1, a: 'B', cat: 'Grundlagen' },
-        { q: 2, a: 'C', cat: 'Deskriptive Statistik' },
-        // Fügen Sie hier die restlichen 48 Fragenobjekte ein
-        // z.B. { q: 3, a: 'A', cat: 'Induktive Statistik' }, ...
-    ];
-    
-    let timerInterval;
-
-    function startTimer(duration, display) {
-        let timer = duration, minutes, seconds;
-        timerInterval = setInterval(function () {
-            minutes = parseInt(timer / 60, 10);
-            seconds = parseInt(timer % 60, 10);
-            minutes = minutes < 10 ? "0" + minutes : minutes;
-            seconds = seconds < 10 ? "0" + seconds : seconds;
-            display.textContent = minutes + ":" + seconds;
-            if (--timer < 0) {
-                clearInterval(timerInterval);
-                alert("Die Zeit ist um! Die Prüfung wird jetzt ausgewertet.");
-                checkAnswers();
-            }
-        }, 1000);
-    }
-
-    window.onload = function () {
-        const fortyFiveMinutes = 60 * 45,
-            display = document.querySelector('#time');
-        startTimer(fortyFiveMinutes, display);
-    };
-
-    document.getElementById('submit-btn').addEventListener('click', e => {
-        e.preventDefault();
-        clearInterval(timerInterval);
-        checkAnswers();
-    });
-
-    function checkAnswers() {
-        let score = 0;
-        let misjudgedQuestions = 0;
+        // Lektion 1: Einführung & Grundlagen (7 Fragen)
+        { cat: "Lektion 1: Einführung & Grundlagen", text: "1. Laut Skript sind Schulnoten (1-6) ein klassisches Beispiel für welches Skalenniveau?", options: {A:"Nominalskala", B:"Ordinalskala", C:"Verhältnisskala", D:"Intervallskala"}, answer: "B", explanation: "Skript S. 16: Noten haben eine Rangfolge, aber die Abstände sind nicht gleich interpretierbar. Dies ist die Definition der Ordinalskala." },
+        { cat: "Lektion 1: Einführung & Grundlagen", text: "2. Was ist der Unterschied zwischen einer Grundgesamtheit und einer Stichprobe?", options: {A:"Es gibt keinen Unterschied", B:"Eine Stichprobe ist eine repräsentative Teilmenge der Grundgesamtheit", C:"Die Grundgesamtheit ist immer kleiner als die Stichprobe", D:"Die Stichprobe umfasst alle Merkmalsträger"}, answer: "B", explanation: "Skript S. 14: Die Grundgesamtheit umfasst alle Merkmalsträger, die Stichprobe ist eine daraus gezogene Teilmenge." },
+        { cat: "Lektion 1: Einführung & Grundlagen", text: "3. Eine Untersuchung, bei der Daten nur zu einem Zeitpunkt erhoben werden, nennt man laut Skript...", options: {A:"Paneldesign", B:"Trenddesign", C:"Längsschnittdesign", D:"Querschnittsdesign"}, answer: "D", explanation: "Skript S. 19: Ein Querschnittsdesign erhebt Daten zu einem Zeitpunkt oder innerhalb einer kurzen Zeitspanne." },
+        { cat: "Lektion 1: Einführung & Grundlagen", text: "4. Welches der folgenden Merkmale ist stetig?", options: {A:"Anzahl der freien Intensivbetten", B:"Postleitzahl", C:"Zufriedenheit (Skala 1-5)", D:"Einzugsgebiet eines Krankenhauses in km"}, answer: "D", explanation: "Skript S. 17: Stetige Merkmale können unendlich viele Werte innerhalb eines Intervalls annehmen, wie z.B. Distanzen." },
+        { cat: "Lektion 1: Einführung & Grundlagen", text: "5. Welcher Schritt gehört NICHT zum 'Ablauf statistischer Untersuchungen' laut Skript S. 18-20?", options: {A:"Datensammlung", B:"Datenverarbeitung", C:"Datenanalyse", D:"Veröffentlichung der Rohdaten"}, answer: "D", explanation: "Skript S. 18ff: Die drei Hauptschritte sind Datensammlung, Datenverarbeitung und Datenanalyse. Eine Veröffentlichung von Rohdaten ist kein fester Bestandteil des Ablaufs." },
+        { cat: "Lektion 1: Einführung & Grundlagen", text: "6. Die Temperatur in Grad Celsius ist ... skaliert.", options: {A:"Nominal", B:"Ordinal", C:"Intervall", D:"Verhältnis"}, answer: "C", explanation: "Skript S. 17: Die Celsius-Skala hat gleich große Abstände, aber keinen natürlichen Nullpunkt (0°C ist willkürlich), was typisch für die Intervallskala ist." },
+        { cat: "Lektion 1: Einführung & Grundlagen", text: "7. Inferenzstatistik beschäftigt sich laut Skript primär mit...", options: {A:"der reinen Beschreibung von Daten durch Tabellen und Grafiken", B:"der Übertragbarkeit von Stichprobenergebnissen auf die Allgemeinheit", C:"der Erforschung von neuen, unbekannten Bereichen", D:"der Sammlung von Primärdaten"}, answer: "B", explanation: "Skript S. 20: Die Inferenzstatistik prüft, ob deskriptive Ergebnisse einer Stichprobe auf die Grundgesamtheit verallgemeinert werden können." },
         
-        const categoryScores = {
-            "Grundlagen": { correct: 0, total: 0 },
-            "Deskriptive Statistik": { correct: 0, total: 0 },
-            "Induktive Statistik": { correct: 0, total: 0 },
-            "Korrelation und Regression": { correct: 0, total: 0 },
-            "Wahrscheinlichkeitsrechnung": { correct: 0, total: 0 }
-        };
-        let consecutiveCorrect = 0;
-        let maxConsecutive = 0;
+        // Lektion 2: Deskriptive Statistik (1D) (8 Fragen)
+        { cat: "Lektion 2: Deskriptive Statistik (1D)", text: "8. Bei einer rechtsschiefen Verteilung (z.B. Einkommen) gilt typischerweise:", options: {A:"Mittelwert = Median", B:"Mittelwert > Median", C:"Mittelwert < Median", D:"Modus > Mittelwert"}, answer: "B", explanation: "Skript S. 55: Bei einer rechtsschiefen Verteilung ziehen wenige hohe Werte (Ausreißer) den Mittelwert nach rechts, sodass er größer als der Median ist." },
+        { cat: "Lektion 2: Deskriptive Statistik (1D)", text: "9. Welches Diagramm wird laut Skript ausschließlich für kardinal-skalierte stetige Merkmale verwendet?", options: {A:"Balkendiagramm", B:"Kreisdiagramm", C:"Paretodiagramm", D:"Histogramm"}, answer: "D", explanation: "Skript S. 41: Das Histogramm wird für stetige Merkmale genutzt, da es Daten in Klassen zusammenfasst und die Fläche die relative Häufigkeit darstellt." },
+        { cat: "Lektion 2: Deskriptive Statistik (1D)", text: "10. Der Interquartilsabstand (IQR) ist definiert als...", options: {A:"Maximum - Minimum", B:"x(0.75) - x(0.25)", C:"Der häufigste Wert", D:"Der Durchschnitt aller Werte"}, answer: "B", explanation: "Skript S. 58: Der IQR misst die Streuung der mittleren 50% der Daten und berechnet sich aus der Differenz des oberen und unteren Quartils." },
+        { cat: "Lektion 2: Deskriptive Statistik (1D)", text: "11. Was summiert man in einer Häufigkeitstabelle für die 'kumulierten Häufigkeiten'?", options: {A:"Die absoluten Häufigkeiten", B:"Die relativen Häufigkeiten", C:"Die Klassenmitten", D:"Die Dichten"}, answer: "B", explanation: "Skript S. 30: Die kumulierte Häufigkeit Fm summiert die relativen Häufigkeiten fj von der ersten bis zur m-ten Ausprägung auf." },
+        { cat: "Lektion 2: Deskriptive Statistik (1D)", text: "12. Der Modus (Modalwert) ist...", options: {A:"der robusteste Lageparameter", B:"der Wert in der Mitte der geordneten Daten", C:"diejenige Merkmalsausprägung, die am häufigsten vorkommt", D:"nur für kardinale Daten berechenbar"}, answer: "C", explanation: "Skript S. 44: Der Modus ist als die häufigste Ausprägung eines Merkmals definiert und für alle Skalenniveaus bestimmbar." },
+        { cat: "Lektion 2: Deskriptive Statistik (1D)", text: "13. Wenn alle Werte in einem Datensatz 42 sind, was ist die Standardabweichung?", options: {A:"42", B:"1", C:"0", D:"Nicht definierbar"}, answer: "C", explanation: "Skript S. 58ff: Die Standardabweichung misst die Streuung um den Mittelwert. Wenn alle Werte gleich sind, gibt es keine Streuung, also ist sie 0." },
+        { cat: "Lektion 2: Deskriptive Statistik (1D)", text: "14. Die Spannweite ist anfällig für...", options: {A:"eine große Stichprobe", B:"Ausreißer", C:"symmetrische Verteilungen", D:"negative Werte"}, answer: "B", explanation: "Skript S. 57: Da die Spannweite nur aus dem Maximum und Minimum berechnet wird, ist sie sehr empfindlich gegenüber extremen Werten (Ausreißern)." },
+        { cat: "Lektion 2: Deskriptive Statistik (1D)", text: "15. Was gibt die Dichte in einem Histogramm an?", options: {A:"Die absolute Häufigkeit einer Klasse", B:"Die relative Häufigkeit im Verhältnis zur Klassenbreite", C:"Die Gesamtanzahl der Beobachtungen", D:"Den Mittelwert der Klasse"}, answer: "B", explanation: "Skript S. 41: Um die Flächen vergleichbar zu machen, wird die relative Häufigkeit durch die Klassenbreite geteilt, was die Dichte ergibt." },
 
-        quizData.forEach(item => {
-            const qBlock = document.querySelector(`input[name="q${item.q}"]`).closest('.question-block');
-            const selected = qBlock.querySelector(`input[name="q${item.q}"]:checked`);
-            const confidence = qBlock.querySelector(`input[name="c${item.q}"]`).value;
-            const explanation = qBlock.querySelector('.explanation');
-            const labels = qBlock.querySelectorAll('.answer-label');
+        // Lektion 3: Deskriptive Statistik (2D) (8 Fragen)
+        { cat: "Lektion 3: Deskriptive Statistik (2D)", text: "16. Welches Zusammenhangsmaß wird laut Skript für zwei nominalskalierte Merkmale verwendet?", options: {A:"Korrelationskoeffizient nach Bravais-Pearson", B:"Rangkorrelationskoeffizient nach Spearman", C:"Korrigierter Kontingenzkoeffizient K*", D:"Interquartilsabstand"}, answer: "C", explanation: "Skript S. 66 & 71: Für den Zusammenhang zweier nominaler Merkmale wird die Kontingenzanalyse durchgeführt, die im korrigierten Kontingenzkoeffizienten mündet." },
+        { cat: "Lektion 3: Deskriptive Statistik (2D)", text: "17. Ein Rangkorrelationskoeffizient nach Spearman von rS = -0.9 deutet auf...", options: {A:"einen starken monoton wachsenden Zusammenhang", B:"fast keinen monotonen Zusammenhang", C:"einen starken monoton fallenden Zusammenhang", D:"einen perfekten linearen Zusammenhang"}, answer: "C", explanation: "Skript S. 82: Werte nahe -1 deuten auf einen starken, gegenläufigen (je mehr X, desto weniger Y) monotonen Zusammenhang hin." },
+        { cat: "Lektion 3: Deskriptive Statistik (2D)", text: "18. Was ist die Kernaussage von 'Korrelation impliziert keine Kausalität'?", options: {A:"Eine Korrelation schließt Kausalität aus", B:"Zwei korrelierte Merkmale müssen einen kausalen Zusammenhang haben", C:"Eine Korrelation allein beweist nicht, dass eine Variable die andere verursacht", D:"Kausalität ist ein rein philosophisches Konzept"}, answer: "C", explanation: "Skript S. 96: Eine Korrelation kann auch durch eine dritte, unbeobachtete Variable (Scheinkorrelation) oder durch Zufall entstehen und ist kein Beweis für einen Ursache-Wirkungs-Zusammenhang." },
+        { cat: "Lektion 3: Deskriptive Statistik (2D)", text: "19. Welches Skalenniveau ist mindestens für den Korrelationskoeffizienten nach Bravais-Pearson erforderlich?", options: {A:"Nominalskala", B:"Ordinalskala", C:"Kardinalskala", D:"Alle Skalenniveaus"}, answer: "C", explanation: "Skript S. 87: Der Korrelationskoeffizient nach Bravais-Pearson misst lineare Zusammenhänge und erfordert, dass Abstände und Verhältnisse interpretierbar sind, was nur bei der Kardinalskala gegeben ist." },
+        { cat: "Lektion 3: Deskriptive Statistik (2D)", text: "20. Bei der Kontingenzanalyse vergleicht man die beobachteten Häufigkeiten (nij) mit...", options: {A:"den Randhäufigkeiten", B:"den erwarteten Häufigkeiten unter Annahme der Unabhängigkeit (ñij)", C:"der Gesamtstichprobengröße n", D:"dem Chi-Quadrat-Wert"}, answer: "B", explanation: "Skript S. 71: Der Kern der Kontingenzanalyse ist der Vergleich der tatsächlich beobachteten Häufigkeiten mit jenen, die man bei statistischer Unabhängigkeit erwarten würde." },
+        { cat: "Lektion 3: Deskriptive Statistik (2D)", text: "21. Welches Diagramm wird zur Visualisierung des Zusammenhangs zweier kardinalskalierter Merkmale verwendet?", options: {A:"Histogramm", B:"Balkendiagramm", C:"Streudiagramm (Scatterplot)", D:"Boxplot"}, answer: "C", explanation: "Skript S. 84: Ein Streudiagramm stellt die Wertepaare zweier kardinaler Merkmale als Punkte in einem Koordinatensystem dar, um Muster zu erkennen." },
+        { cat: "Lektion 3: Deskriptive Statistik (2D)", text: "22. In einer Kontingenztabelle mit I Zeilen und J Spalten, wie wird Kmax berechnet?", options: {A:"I + J", B:"I * J", C:"sqrt((min(I,J) - 1) / min(I,J))", D:"max(I,J) / n"}, answer: "C", explanation: "Skript S. 75: Kmax, der maximale Wert des Kontingenzkoeffizienten, wird mit der Formel basierend auf dem Minimum von Zeilen- (I) und Spaltenanzahl (J) berechnet, um K zu normieren." },
+        { cat: "Lektion 3: Deskriptive Statistik (2D)", text: "23. Ein Wert von K* = 0.314 bedeutet laut Skript...", options: {A:"kein Zusammenhang", B:"schwacher Zusammenhang", C:"mittlerer Zusammenhang", D:"starker Zusammenhang"}, answer: "B", explanation: "Skript S. 75: Gemäß der Einteilung im Skript fällt ein Wert zwischen 0,2 und 0,4 in die Kategorie 'schwacher Zusammenhang'." },
 
-            categoryScores[item.cat].total++;
+        // Lektion 4: Lineare Regression (7 Fragen)
+        { cat: "Lektion 4: Lineare Regression", text: "24. Was beschreibt der Regressionskoeffizient 'b' in der einfachen linearen Regression?", options: {A:"Den Startpunkt der Geraden auf der y-Achse", B:"Die Veränderung von Y, wenn X um eine Einheit zunimmt", C:"Die Stärke des linearen Zusammenhangs", D:"Den durchschnittlichen Fehler der Schätzung"}, answer: "B", explanation: "Skript S. 106: Der Regressionskoeffizient (oder Steigung) 'b' gibt an, um wie viele Einheiten sich die abhängige Variable Y ändert, wenn sich die unabhängige Variable X um eine Einheit ändert." },
+        { cat: "Lektion 4: Lineare Regression", text: "25. Das Bestimmtheitsmaß R² gibt an...", options: {A:"ob die Korrelation signifikant ist", B:"die Richtung des Zusammenhangs", C:"welcher Anteil der Varianz der abhängigen Variable durch das Modell erklärt wird", D:"die Steigung der Regressionsgerade"}, answer: "C", explanation: "Skript S. 111: R² ist der quadrierte Korrelationskoeffizient und misst den Anteil der erklärten Streuung an der Gesamtstreuung der abhängigen Variable." },
+        { cat: "Lektion 4: Lineare Regression", text: "26. Die Methode der kleinsten Quadrate minimiert...", options: {A:"die Anzahl der Ausreißer", B:"die Steigung der Regressionsgerade", C:"die Summe der quadrierten Abweichungen der Punkte von der Geraden", D:"den Korrelationskoeffizienten"}, answer: "C", explanation: "Skript S. 104: Das Ziel der Methode der kleinsten Quadrate ist es, die Regressionsgerade so zu legen, dass die Summe der quadrierten vertikalen Abstände (Residuen) minimal wird." },
+        { cat: "Lektion 4: Lineare Regression", text: "27. In der Regressionsanalyse unterscheidet man zwischen...", options: {A:"abhängiger und unabhängiger Variable", B:"diskreter und stetiger Variable", C:"nominaler und ordinaler Variable", D:"qualitativer und quantitativer Variable"}, answer: "A", explanation: "Skript S. 100: Die Regression analysiert den Einfluss einer oder mehrerer unabhängiger Variablen (Prädiktoren) auf eine abhängige Variable (Kriterium)." },
+        { cat: "Lektion 4: Lineare Regression", text: "28. Ein Bestimmtheitsmaß von R² = 0.64 bedeutet, dass...", options: {A:"64% der Vorhersagen falsch sind", B:"die Korrelation 0.64 beträgt", C:"die unabhängige Variable zu 64% die abhängige verursacht", D:"64% der Streuung der abhängigen Variable durch das Modell erklärt werden"}, answer: "D", explanation: "Skript S. 111-112: R² wird als Prozentsatz interpretiert, der den Erklärungsgehalt des Modells für die Varianz der Y-Variable angibt." },
+        { cat: "Lektion 4: Lineare Regression", text: "29. Was ist ein 'Residuum' in der Regressionsanalyse?", options: {A:"Ein Synonym für den Korrelationskoeffizienten", B:"Die Differenz zwischen beobachtetem und durch die Gerade geschätztem y-Wert", C:"Ein besonders einflussreicher Datenpunkt", D:"Die unabhängige Variable X"}, answer: "B", explanation: "Skript S. 104: Das Residuum ist der Schätzfehler für eine einzelne Beobachtung, also der vertikale Abstand des Punktes von der Regressionsgerade." },
+        { cat: "Lektion 4: Lineare Regression", text: "30. Um die Qualität einer Regressionsgeraden zu beurteilen, nutzt man laut Skript NICHT...", options: {A:"den Korrelationskoeffizienten", B:"das Bestimmtheitsmaß", C:"den Standardfehler", D:"den Mittelwert der Residuen"}, answer: "D", explanation: "Skript S. 109: Das Skript nennt explizit den Korrelationskoeffizienten, das Bestimmtheitsmaß und den Standardfehler als die drei Maßzahlen zur Qualitätsbeurteilung." },
 
-            if (selected) {
-                const isCorrect = selected.value === item.a;
-                if (isCorrect) {
-                    score++;
-                    categoryScores[item.cat].correct++;
-                    selected.closest('.answer-label').classList.add('correct');
-                    consecutiveCorrect++;
-                } else {
-                    selected.closest('.answer-label').classList.add('incorrect');
-                    if (confidence === '3') misjudgedQuestions++;
-                    consecutiveCorrect = 0;
-                }
-                maxConsecutive = Math.max(maxConsecutive, consecutiveCorrect);
+        // Lektion 5: Wahrscheinlichkeitsrechnung (7 Fragen)
+        { cat: "Lektion 5: Wahrscheinlichkeitsrechnung", text: "31. Zwei Ereignisse A und B sind disjunkt, wenn...", options: {A:"P(A ∩ B) = P(A) * P(B)", B:"P(A ∪ B) = 1", C:"sie keine gemeinsamen Ergebnisse haben (P(A ∩ B) = 0)", D:"P(A) = P(B)"}, answer: "C", explanation: "Skript S. 127: Disjunkte (oder unvereinbare) Ereignisse haben keine Schnittmenge, sie können nicht gleichzeitig eintreten." },
+        { cat: "Lektion 5: Wahrscheinlichkeitsrechnung", text: "32. Die Wahrscheinlichkeit des Komplementärereignisses A' berechnet sich durch:", options: {A:"P(A) / n", B:"1 - P(A)", C:"P(A) * P(A)", D:"1 + P(A)"}, answer: "B", explanation: "Skript S. 132: Die Wahrscheinlichkeit, dass ein Ereignis NICHT eintritt, ist 1 (oder 100%) minus die Wahrscheinlichkeit, dass es eintritt." },
+        { cat: "Lektion 5: Wahrscheinlichkeitsrechnung", text: "33. Was beschreibt die Ergebnismenge Ω?", options: {A:"Nur die günstigen Ergebnisse", B:"Nur die unmöglichen Ergebnisse", C:"Alle möglichen Ergebnisse eines Zufallsexperiments", D:"Die Wahrscheinlichkeit eines Ereignisses"}, answer: "C", explanation: "Skript S. 116: Die Ergebnismenge (oder Ergebnisraum) Ω fasst alle denkbaren Ausgänge eines Zufallsvorgangs zusammen." },
+        { cat: "Lektion 5: Wahrscheinlichkeitsrechnung", text: "34. Für zwei nicht-disjunkte Ereignisse A und B gilt die Additionsregel:", options: {A:"P(A∪B) = P(A) + P(B)", B:"P(A∪B) = P(A) * P(B)", C:"P(A∪B) = P(A) + P(B) - P(A∩B)", D:"P(A∪B) = P(A) - P(B)"}, answer: "C", explanation: "Skript S. 133: Um die Vereinigungsmenge zu berechnen, müssen die Einzelwahrscheinlichkeiten addiert und die doppelt gezählte Schnittmenge subtrahiert werden." },
+        { cat: "Lektion 5: Wahrscheinlichkeitsrechnung", text: "35. Wie wird die Wahrscheinlichkeit P(A) nach Laplace (klassisches Verständnis) definiert?", options: {A:"Anzahl günstiger Fälle / Anzahl möglicher Fälle", B:"Anzahl möglicher Fälle / Anzahl günstiger Fälle", C:"Anzahl Beobachtungen / n", D:"Subjektive Einschätzung"}, answer: "A", explanation: "Skript S. 130: Die Wahrscheinlichkeit ist der Quotient aus der Anzahl der für das Ereignis A günstigen Ergebnisse und der Gesamtanzahl aller möglichen Ergebnisse." },
+        { cat: "Lektion 5: Wahrscheinlichkeitsrechnung", text: "36. Der Erwartungswert E(X) einer diskreten Zufallsvariable ist...", options: {A:"der häufigste Wert", B:"der Wert in der Mitte", C:"das gewichtete Mittel der möglichen Werte, gewichtet mit ihren Wahrscheinlichkeiten", D:"die Summe aller Wahrscheinlichkeiten"}, answer: "C", explanation: "Skript S. 143: Der Erwartungswert ist das Pendant zum arithmetischen Mittel und berechnet sich als Summe von 'Wert mal Wahrscheinlichkeit'." },
+        { cat: "Lektion 5: Wahrscheinlichkeitsrechnung", text: "37. Eine stetige Zufallsvariable...", options: {A:"hat nur abzählbar viele Ausprägungen", B:"kann jeden Wert in einem Intervall annehmen", C:"wird durch eine Wahrscheinlichkeitsfunktion beschrieben", D:"hat immer einen Erwartungswert von 0"}, answer: "B", explanation: "Skript S. 145: Im Gegensatz zu diskreten Variablen können stetige Zufallsvariablen überabzählbar unendlich viele Werte annehmen (z.B. Wartezeit, Größe)." },
+
+        // Lektion 6: Spezielle Verteilungen (8 Fragen)
+        { cat: "Lektion 6: Spezielle Verteilungen", text: "38. Welches ist der Hauptunterschied zwischen einer binomial- und einer geometrisch verteilten Zufallsvariable?", options: {A:"Die Erfolgswahrscheinlichkeit p ist unterschiedlich", B:"Binomial zählt Erfolge bei n Versuchen, Geometrisch zählt Misserfolge bis zum 1. Erfolg", C:"Die Binomialverteilung ist stetig, die geometrische diskret", D:"Es gibt keinen Unterschied"}, answer: "B", explanation: "Skript S. 153 & 157: Dies ist die zentrale Unterscheidung. Binomialverteilung hat eine feste Anzahl an Versuchen (n), die geometrische Verteilung nicht." },
+        { cat: "Lektion 6: Spezielle Verteilungen", text: "39. Die Form einer Normalverteilung wird durch welche beiden Parameter bestimmt?", options: {A:"n und p", B:"Mittelwert μ und Standardabweichung σ", C:"Freiheitsgrade df", D:"Unter- und Obergrenze"}, answer: "B", explanation: "Skript S. 160: Die Lage der Glockenkurve wird durch den Erwartungswert μ bestimmt, ihre Breite/Streuung durch die Standardabweichung σ." },
+        { cat: "Lektion 6: Spezielle Verteilungen", text: "40. Was ist der Zweck der z-Standardisierung (Transformation)?", options: {A:"Eine Verteilung in eine Binomialverteilung zu überführen", B:"Den Mittelwert zu berechnen", C:"Jede Normalverteilung in eine Standardnormalverteilung (μ=0, σ=1) zu überführen", D:"Die Varianz zu maximieren"}, answer: "C", explanation: "Skript S. 162: Durch die Transformation z = (x-μ)/σ kann man für jede Normalverteilung Tabellenwerte der Standardnormalverteilung nutzen, um Wahrscheinlichkeiten zu finden." },
+        { cat: "Lektion 6: Spezielle Verteilungen", text: "41. Die Gesamtfläche unter der Dichtefunktion einer Normalverteilung ist immer...", options: {A:"0", B:"1", C:"abhängig von μ", D:"unendlich"}, answer: "B", explanation: "Skript S. 162: Die Gesamtfläche unter jeder Wahrscheinlichkeitsdichtefunktion muss 1 (oder 100%) betragen, da sie alle möglichen Ergebnisse repräsentiert." },
+        { cat: "Lektion 6: Spezielle Verteilungen", text: "42. Wofür wird die t-Verteilung laut Skript insbesondere benötigt?", options: {A:"Für nominalskalierte Daten", B:"Wenn die Varianz der Grundgesamtheit bekannt ist", C:"Wenn die Stichproben klein sind und die Varianz unbekannt ist", D:"Zur Berechnung der Spannweite"}, answer: "C", explanation: "Skript S. 177: Die t-Verteilung ist der Standardnormalverteilung sehr ähnlich, berücksichtigt aber über die Freiheitsgrade die zusätzliche Unsicherheit durch kleine Stichproben." },
+        { cat: "Lektion 6: Spezielle Verteilungen", text: "43. Der Erwartungswert einer binomialverteilten Zufallsvariable X ~ B(n, p) ist:", options: {A:"n * p", B:"n * p * (1-p)", C:"(1-p) / p", D:"p / n"}, answer: "A", explanation: "Skript S. 156: Der erwartete Anzahl an Erfolgen ist einfach die Anzahl der Versuche (n) multipliziert mit der Erfolgswahrscheinlichkeit (p)." },
+        { cat: "Lektion 6: Spezielle Verteilungen", text: "44. Wenn n zunimmt, nähert sich die t-Verteilung welcher Verteilung an?", options: {A:"Binomialverteilung", B:"Geometrische Verteilung", C:"Gleichverteilung", D:"Standardnormalverteilung"}, answer: "D", explanation: "Skript S. 179: Mit steigendem Stichprobenumfang (und damit Freiheitsgraden) wird der Unterschied zwischen t-Verteilung und Standardnormalverteilung vernachlässigbar klein." },
+        { cat: "Lektion 6: Spezielle Verteilungen", text: "45. Wie findet man die Wahrscheinlichkeit P(X ≤ x) für einen negativen z-Wert?", options: {A:"Man liest den Wert direkt aus der Tabelle ab", B:"1 - Φ(z)", C:"1 - Φ(-z)", D:"Man kann sie nicht berechnen"}, answer: "B", explanation: "Skript S. 166: Da die Tabelle nur positive z-Werte enthält, nutzt man die Symmetrie: Φ(-z) = 1 - Φ(z)." },
+
+        // Lektion 7: Statistische Schätzverfahren (7 Fragen)
+        { cat: "Lektion 7: Statistische Schätzverfahren", text: "46. Was ist der Unterschied zwischen einer Punkt- und einer Intervallschätzung?", options: {A:"Es gibt keinen", B:"Punktschätzung liefert einen einzelnen Wert, Intervallschätzung einen Bereich", C:"Punktschätzung ist genauer", D:"Intervallschätzung gilt nur für den Mittelwert"}, answer: "B", explanation: "Skript S. 182 & 185: Eine Punktschätzung schätzt einen Parameter (z.B. μ) durch eine einzige Zahl (z.B. x̄), ein Konfidenzintervall gibt einen Bereich an, in dem der Parameter mit einer bestimmten Wahrscheinlichkeit liegt." },
+        { cat: "Lektion 7: Statistische Schätzverfahren", text: "47. Ein 95%-Konfidenzintervall bedeutet, dass...", options: {A:"der wahre Parameter mit 95% Wahrscheinlichkeit im Intervall liegt", B:"wenn wir den Prozess oft wiederholen, 95% der berechneten Intervalle den wahren Parameter enthalten werden", C:"die Nullhypothese zu 95% falsch ist", D:"der Stichprobenmittelwert zu 95% korrekt ist"}, answer: "B", explanation: "Skript S. 185: Dies ist die korrekte frequentistische Interpretation. Es ist eine Aussage über die Zuverlässigkeit der Methode, nicht über ein einzelnes, spezifisches Intervall." },
+        { cat: "Lektion 7: Statistische Schätzverfahren", text: "48. Wann verwendet man zur Berechnung eines Konfidenzintervalls für den Mittelwert ein Quantil der t-Verteilung anstatt der z-Verteilung?", options: {A:"Immer", B:"Wenn die Varianz der Grundgesamtheit bekannt ist", C:"Wenn die Varianz der Grundgesamtheit unbekannt ist", D:"Nie"}, answer: "C", explanation: "Skript S. 188 & 192: Ist die Varianz σ² unbekannt und muss durch die Stichprobenvarianz s² geschätzt werden, wird die t-Verteilung verwendet, um die zusätzliche Unsicherheit zu berücksichtigen." },
+        { cat: "Lektion 7: Statistische Schätzverfahren", text: "49. Ein Schätzer ist 'konsistent', wenn er...", options: {A:"immer den wahren Wert trifft", B:"niemals den wahren Wert trifft", C:"mit zunehmendem Stichprobenumfang dem wahren Wert immer näher kommt", D:"einen Erwartungswert von 0 hat"}, answer: "C", explanation: "Skript S. 183: Konsistenz ist eine Eigenschaft von Schätzern, die besagt, dass sie bei größeren Stichproben genauer werden." },
+        { cat: "Lektion 7: Statistische Schätzverfahren", text: "50. Wie wirkt sich eine Vergrößerung des Stichprobenumfangs n auf die Breite eines Konfidenzintervalls aus?", options: {A:"Das Intervall wird breiter", B:"Das Intervall wird schmaler", C:"Es hat keine Auswirkung", D:"Das Intervall verschiebt sich"}, answer: "B", explanation: "Skript S. 194: Ein größeres n verringert den Standardfehler (σ/√n), was zu einem präziseren, also schmaleren, Konfidenzintervall führt." },
+        { cat: "Lektion 7: Statistische Schätzverfahren", text: "51. Der Stichprobenmittelwert x̄ ist ein erwartungstreuer Schätzer für den...", options: {A:"Populationsmedian", B:"Populationsmodus", C:"Populationserwartungswert μ", D:"Populationsvarianz σ²"}, answer: "C", explanation: "Skript S. 183: Erwartungstreue bedeutet, dass der Erwartungswert des Schätzers dem wahren Parameter entspricht. E(x̄) = μ." },
+        { cat: "Lektion 7: Statistische Schätzverfahren", text: "52. Eine Verringerung des Konfidenzniveaus (z.B. von 99% auf 90%) führt zu einem...", options: {A:"schmaleren Intervall", B:"breiteren Intervall", C:"identischen Intervall", D:"unendlichen Intervall"}, answer: "A", explanation: "Skript S. 194: Weniger Vertrauen (kleineres Konfidenzniveau) erfordert einen kleineren kritischen Wert (z.B. z=1.645 für 90% vs z=2.576 für 99%), was das Intervall schmaler und weniger 'sicher' macht." },
+
+        // Lektion 8: Hypothesentests (8 Fragen)
+        { cat: "Lektion 8: Hypothesentests", text: "53. Was besagt die Nullhypothese (H0) typischerweise?", options: {A:"Dass der vermutete Effekt existiert", B:"Dass es keinen Effekt oder keinen Unterschied gibt", C:"Dass die Alternativhypothese wahr ist", D:"Dass ein Fehler gemacht wurde"}, answer: "B", explanation: "Skript S. 199: Die H0 ist die 'konservative' Annahme, die davon ausgeht, dass es keinen Zusammenhang, keinen Unterschied oder keinen Effekt gibt. Man versucht, sie zu widerlegen." },
+        { cat: "Lektion 8: Hypothesentests", text: "54. Ein Fehler 1. Art (α-Fehler) tritt auf, wenn man...", options: {A:"die H0 beibehält, obwohl sie falsch ist", B:"die H0 verwirft, obwohl sie wahr ist", C:"die H1 verwirft, obwohl sie wahr ist", D:"einen Rechenfehler macht"}, answer: "B", explanation: "Skript S. 209: Der α-Fehler ist die fälschliche Ablehnung einer wahren Nullhypothese. Man glaubt, einen Effekt gefunden zu haben, der nicht existiert." },
+        { cat: "Lektion 8: Hypothesentests", text: "55. Was ist der Unterschied zwischen einem gerichteten und einem ungerichteten Test?", options: {A:"Gerichtete Tests sind immer genauer", B:"Ungerichtete Tests haben keinen Ablehnungsbereich", C:"Ein gerichteter Test prüft eine spezifische Richtung ('größer als' oder 'kleiner als')", D:"Es gibt keinen Unterschied"}, answer: "C", explanation: "Skript S. 202: Ein ungerichteter Test prüft auf 'ungleich', während ein gerichteter (einseitiger) Test eine spezifische Vermutung über die Richtung des Effekts testet." },
+        { cat: "Lektion 8: Hypothesentests", text: "56. Wann wird die Nullhypothese abgelehnt?", options: {A:"Wenn die Prüfgröße kleiner als der kritische Wert ist", B:"Wenn der p-Wert größer als das Signifikanzniveau α ist", C:"Wenn die Prüfgröße (im Betrag) größer als der kritische Wert ist", D:"Wenn das Signifikanzniveau 100% beträgt"}, answer: "C", explanation: "Skript S. 205: Die Entscheidungsregel besagt, dass die H0 verworfen wird, wenn die berechnete Prüfgröße in den Ablehnungsbereich fällt, also extremer als der kritische Wert ist." },
+        { cat: "Lektion 8: Hypothesentests", text: "57. Das Signifikanzniveau α gibt die Wahrscheinlichkeit an für...", options: {A:"einen Fehler 2. Art", B:"eine korrekte Entscheidung", C:"einen Fehler 1. Art", D:"die Stärke des Effekts"}, answer: "C", explanation: "Skript S. 204: Das Signifikanzniveau α ist die vom Forscher festgelegte, maximal akzeptierte Wahrscheinlichkeit für einen Fehler 1. Art." },
+        { cat: "Lektion 8: Hypothesentests", text: "58. Eine 'Veränderungshypothese' ist laut Skript eine spezielle Form der...", options: {A:"Zusammenhangshypothese", B:"Unterschiedshypothese", C:"Lageparameterhypothese", D:"Nullhypothese"}, answer: "B", explanation: "Skript S. 201: Eine Veränderungshypothese ist eine Unterschiedshypothese, die Unterschiede für dieselbe Gruppe zu verschiedenen Zeitpunkten (z.B. vor/nach einer Therapie) prüft." },
+        { cat: "Lektion 8: Hypothesentests", text: "59. Ein Fehler 2. Art (β-Fehler) bedeutet...", options: {A:"man verwirft eine wahre H0", B:"man behält eine falsche H0 fälschlicherweise bei", C:"man wählt das falsche α", D:"man formuliert die H1 falsch"}, answer: "B", explanation: "Skript S. 209: Der β-Fehler tritt auf, wenn ein tatsächlich existierender Effekt aufgrund der Stichprobendaten nicht entdeckt wird. Man behält die falsche H0 bei." },
+        { cat: "Lektion 8: Hypothesentests", text: "60. Wovon hängt es ab, ob man einen z-Test oder einen t-Test für einen Erwartungswert durchführt?", options: {A:"Von der Größe der Stichprobe", B:"Ob die Varianz der Grundgesamtheit bekannt ist oder nicht", C:"Ob der Test gerichtet oder ungerichtet ist", D:"Vom Wert des Mittelwerts"}, answer: "B", explanation: "Skript S. 210 & 219: Dies ist das zentrale Kriterium. Ist σ² bekannt, wird der z-Test verwendet. Ist σ² unbekannt und muss mit s² geschätzt werden, wird der t-Test verwendet." }
+
+    ].map((q, i) => ({ ...q, id: i + 1 }));
+
+    let timerInterval;
+    let timeRemaining = quizDurationMinutes * 60;
+    const initialTime = quizDurationMinutes * 60;
+
+    const categories = [...new Set(quizData.map(q => q.cat))];
+
+    // =================================================================================
+    // RENDERING LAYER (Emuliert React-Komponenten)
+    // =================================================================================
+
+    function renderQuiz() {
+        const form = document.getElementById('quiz-form');
+        form.innerHTML = '';
+        quizData.forEach(q => {
+            const questionBlock = document.createElement('div');
+            questionBlock.className = 'question-block';
+            questionBlock.setAttribute('data-question-id', q.id);
+
+            let optionsHTML = '';
+            for (const [key, value] of Object.entries(q.options)) {
+                optionsHTML += `
+                    <label class="answer-label">
+                        <input type="radio" name="q${q.id}" value="${key}"> ${key}) ${value}
+                    </label>
+                `;
             }
-            
-            labels.forEach(l => {
-                if (l.querySelector('input').value === item.a) {
-                    l.classList.add('correct');
-                }
-            });
 
-            explanation.style.display = 'block';
+            questionBlock.innerHTML = `
+                <p>${q.text}</p>
+                <div class="confidence-slider">
+                    <label for="c${q.id}">Wie sicher sind Sie sich? (1=geraten, 3=sehr sicher)</label>
+                    <input type="range" id="c${q.id}" name="c${q.id}" min="1" max="3" value="2">
+                </div>
+                ${optionsHTML}
+                <div class="explanation" style="display: none;">
+                    <strong>Erklärung:</strong> ${q.explanation}
+                </div>
+            `;
+            form.appendChild(questionBlock);
         });
+    }
 
-        displayResults(score, misjudgedQuestions, maxConsecutive, categoryScores);
+    function renderDashboard(stats) {
+        document.getElementById('total-score').textContent = `${stats.score} von ${quizData.length} (${stats.percentage.toFixed(0)}%)`;
+        document.getElementById('misjudged').textContent = stats.misjudgedQuestions;
+        
+        const timeTaken = initialTime - timeRemaining;
+        const minutes = Math.floor(timeTaken / 60);
+        const seconds = timeTaken % 60;
+        document.getElementById('time-taken').textContent = `${minutes} Min, ${seconds} Sek`;
+        
+        renderBadges(stats);
+        renderChart(stats.categoryScores);
+        generateLearningPlan(stats.categoryScores);
     }
     
-    function displayResults(score, misjudged, consecutive, categoryScores) {
-        document.getElementById('quiz-form').style.display = 'none';
-        document.getElementById('submit-btn').style.display = 'none';
-        document.getElementById('timer-container').style.display = 'none';
-        document.getElementById('results').style.display = 'block';
+    function renderBadges(stats) {
+        const container = document.getElementById('badges-container');
+        container.innerHTML = '';
+        
+        let badges = [];
 
-        document.getElementById('total-score').textContent = `${score} von ${quizData.length} (${((score/quizData.length)*100).toFixed(0)}%)`;
-        document.getElementById('misjudged').textContent = misjudged;
-
-        // Badge Logic
-        if (categoryScores['Grundlagen'].correct === categoryScores['Grundlagen'].total && categoryScores['Grundlagen'].total > 0) {
-            document.getElementById('badge-grundlagen').classList.add('earned');
-        }
-        // Fügen Sie hier Logik für andere Badges hinzu...
-        if (consecutive >= 5) { // z.B. 5 in Folge richtig
-             document.getElementById('badge-fehlerlos').classList.add('earned');
+        // Category Badges
+        for (const category in stats.categoryScores) {
+            const { correct, total } = stats.categoryScores[category];
+            const earned = total > 0 && correct === total;
+            badges.push(`<div class="badge ${earned ? 'earned' : ''}" title="${category}">🎓 ${category.split(":")[0]}-Profi</div>`);
         }
 
-
-        renderChart(categoryScores);
-        generateLearningPlan(categoryScores);
+        // Performance Badges
+        if (stats.percentage === 100) {
+            badges.push(`<div class="badge earned">🎯 Perfektionist</div>`);
+        }
+        if (stats.misjudgedQuestions === 0) {
+            badges.push(`<div class="badge earned">🧐 Selbsteinsicht-Champion</div>`);
+        }
+        if (timeRemaining > initialTime / 2) {
+             badges.push(`<div class="badge earned">⚡️ Blitzdenker</div>`);
+        }
+        
+        container.innerHTML = badges.join('');
     }
 
     function renderChart(categoryScores) {
         const ctx = document.getElementById('skill-chart').getContext('2d');
-        const labels = Object.keys(categoryScores);
-        const data = labels.map(label => {
-            const cat = categoryScores[label];
+        const labels = Object.keys(categoryScores).map(label => label.split(":")[0]); // Nur "Lektion X"
+        const data = Object.values(categoryScores).map(cat => {
             return cat.total > 0 ? (cat.correct / cat.total) * 100 : 0;
         });
 
@@ -380,24 +445,103 @@ document.addEventListener('DOMContentLoaded', () => {
                     label: 'Beherrschung in %',
                     data: data,
                     fill: true,
-                    backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                    borderColor: 'rgb(59, 130, 246)',
-                    pointBackgroundColor: 'rgb(59, 130, 246)',
+                    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+                    borderColor: 'rgb(245, 158, 11)',
+                    pointBackgroundColor: 'rgb(245, 158, 11)',
                 }]
             },
             options: {
-                elements: {
-                    line: { tension: 0.1 }
-                },
+                responsive: true,
+                maintainAspectRatio: false,
+                elements: { line: { tension: 0.1 } },
                 scales: {
                     r: {
                         angleLines: { display: false },
                         suggestedMin: 0,
-                        suggestedMax: 100
+                        suggestedMax: 100,
+                        ticks: { backdropColor: 'rgba(255, 255, 255, 0.6)'}
                     }
                 }
             }
         });
+    }
+
+    // =================================================================================
+    // LOGIC LAYER (Controller-Funktionen)
+    // =================================================================================
+
+    function startTimer() {
+        const display = document.querySelector('#time');
+        timerInterval = setInterval(() => {
+            timeRemaining--;
+            const minutes = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+            const seconds = (timeRemaining % 60).toString().padStart(2, '0');
+            display.textContent = `${minutes}:${seconds}`;
+            if (timeRemaining <= 0) {
+                clearInterval(timerInterval);
+                alert("Die Zeit ist um! Die Prüfung wird jetzt ausgewertet.");
+                evaluateResults();
+            }
+        }, 1000);
+    }
+
+    function evaluateResults() {
+        clearInterval(timerInterval);
+
+        let score = 0;
+        let misjudgedQuestions = 0;
+        
+        const categoryScores = categories.reduce((acc, cat) => {
+            acc[cat] = { correct: 0, total: 0 };
+            return acc;
+        }, {});
+
+        quizData.forEach(item => {
+            const qBlock = document.querySelector(`[data-question-id="${item.id}"]`);
+            const selected = qBlock.querySelector(`input[name="q${item.id}"]:checked`);
+            const confidence = qBlock.querySelector(`input[name="c${item.id}"]`).value;
+            const explanation = qBlock.querySelector('.explanation');
+            const labels = qBlock.querySelectorAll('.answer-label');
+
+            categoryScores[item.cat].total++;
+
+            if (selected) {
+                const isCorrect = selected.value === item.answer;
+                if (isCorrect) {
+                    score++;
+                    categoryScores[item.cat].correct++;
+                    selected.closest('.answer-label').classList.add('correct');
+                } else {
+                    selected.closest('.answer-label').classList.add('incorrect');
+                    if (confidence === '3') misjudgedQuestions++;
+                }
+            }
+            
+            labels.forEach(l => {
+                if (l.querySelector('input').value === item.answer) {
+                    if (!l.classList.contains('correct')) {
+                         l.classList.add('correct');
+                    }
+                }
+            });
+            explanation.style.display = 'block';
+        });
+
+        const stats = {
+            score,
+            misjudgedQuestions,
+            categoryScores,
+            percentage: (score / quizData.length) * 100
+        };
+        
+        showResultsScreen(stats);
+    }
+    
+    function showResultsScreen(stats) {
+        document.getElementById('quiz-container').style.display = 'none';
+        document.getElementById('results').style.display = 'block';
+        renderDashboard(stats);
+        window.scrollTo(0, 0);
     }
     
     function generateLearningPlan(categoryScores) {
@@ -416,17 +560,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let html = '<ul>';
         recommendations.forEach(rec => {
-            let priority;
-            if (rec.percentage < 50) priority = "🔴 Hohe Priorität:";
-            else if (rec.percentage < 80) priority = "🟡 Mittlere Priorität:";
-            else priority = "🟢 Gut gemacht:";
+            let priority, priorityClass, message;
+            if (rec.percentage < 60) {
+                priority = "🔴 Hohe Priorität:";
+                priorityClass = 'priority-high';
+                message = "Hier sind grundlegende Lücken. Wiederhole diese Lektion im Skript intensiv.";
+            } else if (rec.percentage < 85) {
+                priority = "🟡 Mittlere Priorität:";
+                 priorityClass = 'priority-medium';
+                 message = "Gutes Fundament, aber einige Unsicherheiten. Schau dir die falschen Fragen genau an.";
+            } else {
+                priority = "🟢 Sehr gut:";
+                 priorityClass = 'priority-low';
+                 message = "Dieses Thema beherrschst du bereits sehr gut. Kurze Wiederholung genügt.";
+            }
             
-            html += `<li><strong>${priority}</strong> ${rec.category} (Ergebnis: ${rec.percentage.toFixed(0)}%). Fokussiere dich hier auf die Grundlagen.</li>`;
+            html += `<li class="${priorityClass}"><strong>${priority}</strong> ${rec.category} (${rec.percentage.toFixed(0)}%)<br><small>${message}</small></li>`;
         });
         html += '</ul>';
         planContainer.innerHTML = html;
     }
 
+    // =================================================================================
+    // INITIALIZATION
+    // =================================================================================
+    function init() {
+        renderQuiz();
+        startTimer();
+        document.getElementById('submit-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            if(confirm('Möchten Sie die Prüfung wirklich beenden und auswerten?')) {
+                evaluateResults();
+            }
+        });
+    }
+
+    init();
 });
 </script>
 
